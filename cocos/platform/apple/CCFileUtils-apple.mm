@@ -343,7 +343,7 @@ std::string FileUtilsApple::getWritablePath() const
     }
 
     // save to document folder
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     std::string strRet = [documentsDirectory UTF8String];
     strRet.append("/");
