@@ -496,6 +496,9 @@ public:
     const std::thread::id& getCocos2dThreadId() const { return _cocos2d_thread_id; }
 
 protected:
+    static double getAvailableBytes();
+    static double getAvailableKiloBytes();
+    static double getAvailableMegaBytes();
     void reset();
     
     void purgeDirector();

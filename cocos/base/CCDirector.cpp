@@ -76,6 +76,14 @@ THE SOFTWARE.
 #define CC_DIRECTOR_STATS_POSITION Director::getInstance()->getVisibleOrigin()
 #endif // CC_DIRECTOR_STATS_POSITION
 
+#if CC_TARGET_PLATFORM == CC_PLATFORM_IOS
+#include <sys/sysctl.h>
+#import <mach/mach.h>
+#import <mach/mach_host.h>
+#else
+#include <sys/sysinfo.h>
+#endif
+
 using namespace std;
 
 NS_CC_BEGIN
@@ -1121,7 +1129,7 @@ void Director::showStats()
         // to make the FPS stable
         if (_accumDt > CC_DIRECTOR_STATS_INTERVAL)
         {
-            sprintf(buffer, "%.1f / %.3f", _frameRate, _secondsPerFrame);
+            sprintf(buffer, "%.1f / %.3f : %.1fMB", _frameRate, _secondsPerFrame, Director::getAvailableMegaBytes());
             _FPSLabel->setString(buffer);
             _accumDt = 0;
         }
@@ -1144,6 +1152,7 @@ void Director::showStats()
         _drawnVerticesLabel->visit(_renderer, identity, 0);
         _drawnBatchesLabel->visit(_renderer, identity, 0);
         _FPSLabel->visit(_renderer, identity, 0);
+
     }
 }
 
@@ -1346,6 +1355,37 @@ void DisplayLinkDirector::setAnimationInterval(float interval)
         startAnimation();
     }    
 }
+
+double Director::getAvailableBytes() {
+
+#if CC_TARGET_PLATFORM == CC_PLATFORM_IOS
+    vm_statistics_data_t vmStats;
+    mach_msg_type_number_t infoCount = HOST_VM_INFO_COUNT;
+    kern_return_t kernReturn = host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t)&vmStats, &infoCount);
+    if (kernReturn != KERN_SUCCESS)
+    {
+        return 0.0f;
+    }
+    return (vm_page_size * vmStats.free_count);
+#else
+    unsigned long freeram = 0;
+    struct sysinfo info;
+    sysinfo(&info);
+    return info.freeram * info.mem_unit;
+#endif
+    
+}
+
+double Director::getAvailableKiloBytes()
+{
+    return Director::getAvailableBytes() / 1024.0;
+}
+
+double Director::getAvailableMegaBytes()
+{
+    return Director::getAvailableKiloBytes() / 1024.0;
+}
+
 
 NS_CC_END
 
